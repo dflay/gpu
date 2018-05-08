@@ -39,15 +39,22 @@ int main(void){
 
    std::cout << "sum = " << sum << std::endl;
 
-   // now get its norm 
-   square<double> SQUARE; 
-   thrust::plus<double> PLUS; 
+   double mean = sum/( (double)N ); 
+
+   std::cout << "mean = " << mean << std::endl;
+
+   // now get its RMS and norm 
+   square<double> unary_op; 
+   thrust::plus<double> binary_op; 
    double init = 0; 
    
    // transform reduce arguments: start, end, unary operator, init value, binary operator 
-   double norm = sqrt( thrust::transform_reduce(D.begin(),D.end(),SQUARE,init,PLUS) );
+   double sum_sq = thrust::transform_reduce(D.begin(),D.end(),unary_op,init,binary_op);
+   double norm   = sqrt(sum_sq);
+   double rms    = norm/std::sqrt( (double)N ); 
 
    std::cout << "norm = " << norm << std::endl;  
+   std::cout << "RMS  = " << rms  << std::endl;  
 
    return 0;
 }
