@@ -22,7 +22,7 @@ int main(void){
 
    cudaMalloc( (void**)&c_dev,sizeof(int) ); 
    add<<<NBLOCK,NTHREAD>>>(a,b,c_dev);
-   cudaMemcpy(&c,c_Dev,sizeof(int),cudaMemcpyDeviceToHost); 
+   cudaMemcpy(&c,c_dev,sizeof(int),cudaMemcpyDeviceToHost); 
 
    printf("%d + %d = %d \n",a,b,c); 
    

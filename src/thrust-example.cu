@@ -17,8 +17,8 @@
 #include <thrust/replace.h>
 #include <thrust/functional.h>
 
-const int NBLOCK  = N; 
-const int NTHREAD = 1; 
+// const int NBLOCK  = N; 
+// const int NTHREAD = 1; 
 
 // square<T> computes the square of the number f(x) -> x*x 
 template <typename T> 
@@ -26,7 +26,7 @@ struct square {
    __host__ __device__ T operator()(const T& x) const {
       return x*x; 
    }
-}
+};
 
 int main(void){
 
