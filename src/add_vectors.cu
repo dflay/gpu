@@ -5,21 +5,24 @@
 #include <cuda_runtime.h> 
 #include <curand_kernel.h>  
 
-#define N 512 
+#define N (2048*2048) 
 
-const int NBLOCK  = 1; 
-const int NTHREAD = N; 
+const int THREADS_PER_BLOCK = 512; 
 
-__global__ void add(int *a,int *b,int *c){
-   int tid = threadIdx.x;  // parse data at this index 
-   if(tid<N){
-      c[tid] = a[tid] + b[tid];
+__global__ void add(int npts,int *a,int *b,int *c){
+   int i   = threadIdx.x + blockIdx.x*blockDim.x;  // combining blocks and threads; this gives an absolute index  
+   if(i<npts){
+      c[i] = a[i] + b[i];
    } 
 }
 
 int main(void){
 
-   int a[N],b[N],c[N];
+   const int SIZE = N*sizeof(int); 
+
+   int *a = (int *)malloc(SIZE); 
+   int *b = (int *)malloc(SIZE); 
+   int *c = (int *)malloc(SIZE);
  
    int *a_dev,*b_dev,*c_dev; 
 
@@ -29,24 +32,24 @@ int main(void){
       b[i] = 2*i; 
    }
 
-   cudaMalloc( (void**)&a_dev,N*sizeof(int) ); 
-   cudaMalloc( (void**)&b_dev,N*sizeof(int) ); 
-   cudaMalloc( (void**)&c_dev,N*sizeof(int) ); 
+   cudaMalloc( (void**)&a_dev,SIZE); 
+   cudaMalloc( (void**)&b_dev,SIZE); 
+   cudaMalloc( (void**)&c_dev,SIZE); 
 
-   cudaMemcpy(a_dev,a,N*sizeof(int),cudaMemcpyHostToDevice); 
-   cudaMemcpy(b_dev,b,N*sizeof(int),cudaMemcpyHostToDevice); 
+   cudaMemcpy(a_dev,a,SIZE,cudaMemcpyHostToDevice); 
+   cudaMemcpy(b_dev,b,SIZE,cudaMemcpyHostToDevice); 
 
-   add<<<NBLOCK,NTHREAD>>>(a_dev,b_dev,c_dev);
+   add<<<(N+THREADS_PER_BLOCK-1)/THREADS_PER_BLOCK,THREADS_PER_BLOCK>>>(N,a_dev,b_dev,c_dev);
 
-   cudaMemcpy(&c,c_dev,N*sizeof(int),cudaMemcpyDeviceToHost); 
+   cudaMemcpy(c,c_dev,SIZE,cudaMemcpyDeviceToHost); 
 
    for(i=0;i<N;i++){
       printf("i = %d, %d + %d = %d \n",i,a[i],b[i],c[i]);
    } 
   
-   // free(a);
-   // free(b);
-   // free(c);  
+   free(a);
+   free(b);
+   free(c);  
    cudaFree(a_dev); 
    cudaFree(b_dev); 
    cudaFree(c_dev); 
